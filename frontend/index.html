@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimasi Menu MBG · NSGA-II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="brand-mark" aria-hidden="true">
+      <span class="brand-mark">
+        <img src="images/logo.png" alt="Logo MBG OptiMenu">
+      </span>
+    </span>
+    <div class="brand-text">
+      <span class="brand-title">MBG NSGA-II</span>
+      <span class="brand-sub">Rekomendasi Variasi Menu Program Makan Bergizi Gratis</span>
+    </div>
+  </div>
+  <div class="topbar__meta">
+    <span class="dot-status" id="statusDot"></span>
+    <span id="statusText">Menyiapkan mesin optimasi&hellip;</span>
+  </div>
+</header>
+
+<nav class="mainnav">
+  <div class="mainnav__inner">
+    <button class="mainnav__link is-active" data-view="optimasi">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 4L19 12L6 20V4Z" fill="currentColor"/></svg>
+      Optimasi Menu
+    </button>
+    <button class="mainnav__link" data-view="makanan">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 8H20L18 20H6L4 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6C8 4 9.5 2 12 2C14.5 2 16 4 16 6V8" stroke="currentColor" stroke-width="1.8"/></svg>
+      Data Makanan
+    </button>
+    <button class="mainnav__link" data-view="target">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+      Target Gizi
+    </button>
+    <button class="mainnav__link" data-view="riwayat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7V12L15.5 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Riwayat
+    </button>
+  </div>
+</nav>
+
+<div id="view-optimasi" class="view is-active">
+<main class="layout">
+
+  <section class="hero">
+    <div class="hero__eyebrow">Program Makan Bergizi Gratis &middot; Riset Skripsi</div>
+      <h1 class="hero__title">
+          Menu bergizi,<br>
+          lebih beragam setiap hari.
+      </h1>
+      <p class="hero__desc">
+          NSGA-II membantu menyusun rekomendasi menu selama <strong>10 hari</strong>
+          dengan mempertimbangkan <strong>kecukupan gizi</strong> dan
+          <strong>variasi menu</strong>. Setiap rekomendasi dipilih dari berbagai
+          kandidat makanan dan dilengkapi menu tetap (mis. susu) sebagai komponen gizi tetap.
+      </p>
+  </section>
+
+  <div class="dashboard">
+
+    <!-- ================= LEFT: CONTROL PANEL ================= -->
+    <aside class="panel panel--control">
+
+      <!-- Parameter NSGA-II -->
+      <div class="card card--params">
+        <div class="card__head">
+          <h2>Parameter NSGA-II</h2>
+          <span class="card__hint">Atur parameter</span>
+        </div>
+
+        <div class="field">
+          <div class="field__label-row">
+            <label for="popSize">Ukuran populasi</label>
+            <output id="popSizeVal">60</output>
+          </div>
+          <input type="range" id="popSize" min="10" max="200" step="5" value="60">
+        </div>
+
+        <div class="field">
+          <div class="field__label-row">
+            <label for="maxGen">Jumlah generasi</label>
+            <output id="maxGenVal">60</output>
+          </div>
+          <input type="range" id="maxGen" min="5" max="200" step="5" value="60">
+        </div>
+
+        <div class="field-row">
+          <div class="field field--half">
+            <div class="field__label-row">
+              <label for="pc">Crossover</label>
+              <output id="pcVal">0.90</output>
+            </div>
+            <input type="range" id="pc" min="0" max="1" step="0.05" value="0.9">
+          </div>
+
+          <div class="field field--half">
+            <div class="field__label-row">
+              <label for="pm">Mutasi</label>
+              <output id="pmVal">0.20</output>
+            </div>
+            <input type="range" id="pm" min="0" max="1" step="0.05" value="0.2">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field__label-row">
+            <label for="seedInput">Seed</label>
+
+            <label class="toggle-switch">
+              <input type="checkbox" id="seedAktifInput" checked>
+              Aktif
+            </label>
+          </div>
+
+          <input type="number" id="seedInput" class="text-input"
+                step="1" value="42" required>
+
+          <p class="field__note" id="seedNote">
+            Seed 42 menjaga hasil tetap konsisten.
+          </p>
+
+          <p class="field__note" id="seedNoteOff" hidden>
+            Seed nonaktif. Hasil dapat berbeda setiap kali dijalankan.
+          </p>
+        </div>
+
+        <button id="runBtn" class="btn-run">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M6 4L19 12L6 20V4Z" fill="currentColor"/>
+          </svg>
+          <span id="runBtnLabel">Jalankan Optimasi</span>
+        </button>
+
+        <div class="progress-wrap" id="progressWrap" hidden>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-label" id="progressLabel">
+            Generasi 0 / 0
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Variasi & Penalti -->
+      <div class="card card--penalty">
+        <div class="card__head">
+          <h2>Variasi &amp; Penalti</h2>
+          <span class="card__hint">Atur variasi menu</span>
+        </div>
+
+        <div class="field">
+          <div class="field__label-row">
+            <label for="jarakMinimum">Jarak minimum</label>
+            <output id="jarakMinimumVal">3 hari</output>
+          </div>
+          <input type="range" id="jarakMinimum"
+                min="1" max="9" step="1" value="3">
+        </div>
+
+        <div class="field-row">
+          <div class="field field--half">
+            <div class="field__label-row">
+              <label for="penaltiPokok">Penalti pokok</label>
+              <output id="penaltiPokokVal">4.0</output>
+            </div>
+            <input type="range" id="penaltiPokok"
+                  min="0" max="15" step="0.5" value="4">
+          </div>
+
+          <div class="field field--half">
+            <div class="field__label-row">
+              <label for="penaltiLauk">Penalti lauk</label>
+              <output id="penaltiLaukVal">4.0</output>
+            </div>
+            <input type="range" id="penaltiLauk"
+                  min="0" max="15" step="0.5" value="4">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field field--half">
+            <div class="field__label-row">
+              <label for="penaltiSayur">Penalti sayur</label>
+              <output id="penaltiSayurVal">1.0</output>
+            </div>
+            <input type="range" id="penaltiSayur"
+                  min="0" max="15" step="0.5" value="1">
+          </div>
+
+          <div class="field field--half">
+            <div class="field__label-row">
+              <label for="penaltiBuah">Penalti buah</label>
+              <output id="penaltiBuahVal">0.5</output>
+            </div>
+            <input type="range" id="penaltiBuah"
+                  min="0" max="15" step="0.5" value="0.5">
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Kandidat -->
+      <div class="card card--dataset">
+        <div class="card__head">
+          <h2>Kandidat per Kategori</h2>
+        </div>
+
+        <table class="mini-table" id="kategoriSizeTable">
+          <tbody></tbody>
+        </table>
+      </div>
+
+
+      <!-- Target AKG -->
+      <div class="card card--akg">
+        <div class="card__head">
+          <h2>Target AKG MBG</h2>
+          <span class="card__hint">per hari</span>
+        </div>
+
+        <table class="mini-table mini-table--akg" id="akgTable">
+          <tbody></tbody>
+        </table>
+
+        <div class="susu-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M9 2H15V5.2L17 8V21C17 21.55 16.55 22 16 22H8C7.45 22 7 21.55 7 21V8L9 5.2V2Z"
+                  stroke="var(--turmeric)"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"/>
+          </svg>
+          <span id="susuNoteLabel">Susu UHT 200 ml · komponen gizi tetap</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ================= RIGHT: RESULTS ================= -->
+    <section class="panel panel--results">
+
+      <div class="empty-state" id="emptyState">
+        <svg width="72" height="72" viewBox="0 0 24 24" fill="none">
+          <path d="M4 4L20 12L4 20V4Z" stroke="var(--leaf-light)" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        <h3>Belum ada hasil</h3>
+        <p>Atur parameter di panel kiri, lalu klik <strong>Jalankan Optimasi</strong> untuk menghasilkan Pareto
+          front dan menu 10 hari terbaik.</p>
+      </div>
+
+      <div class="results" id="resultsArea" hidden>
+
+        <div class="field__note" id="kontinuitasBanner" style="margin-bottom:14px; padding:10px 14px; border-radius:10px; background:var(--surface-2, #f4f4f8);" hidden></div>
+
+        <div class="stat-strip">
+          <div class="stat">
+            <span class="stat__value" id="statElapsed">&mdash;</span>
+            <span class="stat__label">detik eksekusi</span>
+          </div>
+          <div class="stat">
+            <span class="stat__value" id="statFeasible">&mdash;</span>
+            <span class="stat__label">feasible / populasi</span>
+          </div>
+          <div class="stat">
+            <span class="stat__value" id="statFront1">&mdash;</span>
+            <span class="stat__label">solusi di front&#8209;1</span>
+          </div>
+          <div class="stat stat--accent">
+            <span class="stat__value" id="statBestF2">&mdash;</span>
+            <span class="stat__label">f2 terbaik (variasi menu)</span>
+          </div>
+          <div class="stat">
+            <span class="stat__value" id="statBestF1">&mdash;</span>
+            <span class="stat__label">f1 terbaik (deviasi gizi)</span>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab is-active" data-tab="pareto">Grafik Pareto</button>
+          <!-- <button class="tab" data-tab="konvergensi">Konvergensi</button> -->
+          <button class="tab" data-tab="menu">Menu 10 Hari</button>
+        </div>
+
+        <div class="tab-panel is-active" id="tab-pareto">
+          <div class="chart-card">
+            <div class="chart-legend">
+              <span><i class="dot dot--gray"></i>Infeasible</span>
+              <span><i class="dot dot--blue"></i>Feasible</span>
+              <span><i class="dot dot--red"></i>Pareto front&#8209;1</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="paretoCanvas"></canvas>
+              <div class="chart-tooltip" id="chartTooltip" hidden></div>
+            </div>
+            <div class="chart-axis-label chart-axis-label--x">f1 &mdash; Deviasi Gizi</div>
+            <div class="chart-axis-label chart-axis-label--y">f2 &mdash; Pengulangan Menu</div>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-menu">
+          <div class="menu-best-banner" id="menuBanner"></div>
+          <div class="tray-grid" id="trayGrid"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</main>
+</div>
+
+<!-- ================= VIEW: DATA MAKANAN ================= -->
+<div id="view-makanan" class="view" hidden>
+  <main class="layout">
+
+    <!-- MENU TETAP -->
+    <section class="hero hero--compact">
+      <div class="hero__eyebrow">Kelola Data</div>
+      <h1 class="hero__title hero__title--sm">Menu Tetap</h1>
+      <p class="hero__desc">
+        Kelola menu yang ditambahkan secara otomatis pada setiap hari dalam proses optimasi.
+      </p>
+    </section>
+
+    <div class="toolbar">
+      <div class="toolbar__filters">
+        <input
+          type="text"
+          id="menuTetapSearch"
+          class="text-input"
+          placeholder="Cari menu..."
+        >
+      </div>
+      <div class="toolbar__actions">
+        <button class="btn-secondary" id="btnImportMenuTetapCsv">
+          <!-- icon -->
+          Import CSV
+        </button>
+        <button class="btn-run btn-run--sm" id="btnTambahMenuTetap">
+          <!-- icon -->
+          Tambah Menu
+        </button>
+      </div>
+    </div>
+    <div class="card table-card">
+      <div class="table-wrap">
+        <table class="data-table" id="menuTetapTable">
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th class="num">Berat</th>
+              <th class="num">Energi</th>
+              <th class="num">Protein</th>
+              <th class="num">Lemak</th>
+              <th class="num">Karbo</th>
+              <th>Aktif</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="menuTetapTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- DATA MAKANAN -->
+    <section class="hero hero--compact section-divider">
+      <div class="hero__eyebrow">Kelola Data</div>
+      <h1 class="hero__title hero__title--sm">Data Makanan</h1>
+      <p class="hero__desc">
+        Kelola data makanan yang digunakan sebagai kandidat dalam proses optimasi.
+      </p>
+    </section>
+    <div class="toolbar">
+      <div class="toolbar__filters">
+        <select id="makananFilterKategori" class="select-input">
+          <option value="">Semua Kategori</option>
+          <option value="pokok">Pokok</option>
+          <option value="lauk">Lauk</option>
+          <option value="sayur">Sayur</option>
+          <option value="buah">Buah</option>
+        </select>
+        <input
+          type="text"
+          id="makananSearch"
+          class="text-input"
+          placeholder="Cari makanan..."
+        >
+      </div>
+      <div class="toolbar__actions">
+        <button class="btn-secondary" id="btnImportCsv">
+          <!-- icon -->
+          Import CSV
+        </button>
+        <button class="btn-run btn-run--sm" id="btnTambahMakanan">
+          <!-- icon -->
+          Tambah Makanan
+        </button>
+      </div>
+    </div>
+    <div class="card table-card">
+      <div class="table-wrap">
+        <table class="data-table" id="makananTable">
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Kategori</th>
+              <th class="num">Berat</th>
+              <th class="num">Energi</th>
+              <th class="num">Protein</th>
+              <th class="num">Lemak</th>
+              <th class="num">Karbo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="makananTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ================= VIEW: TARGET GIZI ================= -->
+<div id="view-target" class="view" hidden>
+  <main class="layout">
+    <section class="hero hero--compact">
+      <div class="hero__eyebrow">Pengaturan</div>
+      <h1 class="hero__title hero__title--sm">Target Gizi Makan Siang</h1>
+      <p class="hero__desc">Acuan: Permenkes RI No. 28 Tahun 2019 &amp; Juknis Program Makan Bergizi Gratis. Dipakai langsung sebagai batas feasibility &amp; acuan deviasi (f1) pada NSGA-II.</p>
+    </section>
+
+    <div class="dashboard">
+      <div class="panel">
+        <div class="card card--params">
+          <div class="card__head"><h2>Rentang Target Aktif</h2></div>
+          <form id="targetGiziForm">
+            <div class="target-grid" id="targetGiziGrid"></div>
+            <div class="field" style="margin-top:18px;">
+              <label class="field__label-row" style="margin-bottom:8px;"><span>Sumber Acuan</span></label>
+              <input type="text" id="targetSumber" class="text-input" style="width:100%;">
+            </div>
+            <button type="submit" class="btn-run" style="margin-top:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Simpan Target Gizi
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="card">
+          <div class="card__head"><h2>Riwayat Perubahan</h2></div>
+          <div class="table-wrap">
+            <table class="data-table" id="targetRiwayatTable">
+              <thead><tr><th>Versi</th><th>Energi</th><th>Protein</th><th>Lemak</th><th>Karbo</th></tr></thead>
+              <tbody id="targetRiwayatBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ================= VIEW: RIWAYAT ================= -->
+<div id="view-riwayat" class="view" hidden>
+  <main class="layout">
+    <section class="hero hero--compact">
+      <div class="hero__eyebrow">Histori</div>
+      <h1 class="hero__title hero__title--sm">Riwayat Optimasi</h1>
+      <p class="hero__desc">Seluruh proses Generate yang pernah dijalankan, tersimpan permanen di MySQL.</p>
+    </section>
+
+    <div class="card table-card">
+      <div class="table-wrap">
+        <table class="data-table" id="riwayatTable">
+          <thead>
+            <tr>
+              <th>#</th><th>Tanggal</th><th class="num">Populasi</th><th class="num">Generasi</th>
+              <th class="num">f1 Terbaik</th><th class="num">f2 Terbaik</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="riwayatTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="riwayatDetailPanel" class="riwayat-detail" hidden>
+      <div class="d-flex-between">
+        <h2 class="h6-title">Detail Riwayat #<span id="riwayatDetailId"></span></h2>
+        <div style="display:flex; gap:8px;">
+          <a id="btnExportRiwayat" class="btn-secondary btn-secondary--sm" href="#" download>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px; margin-right:4px;"><path d="M12 4V15M12 15L8 11M12 15L16 11M5 19H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Export Excel
+          </a>
+          <button class="btn-secondary btn-secondary--sm" id="btnTutupDetailRiwayat">Tutup</button>
+        </div>
+      </div>
+      <div class="tray-grid" id="riwayatTrayGrid" style="margin-top:14px;"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ================= MODAL: FORM MAKANAN ================= -->
+<div class="modal-overlay" id="makananModalOverlay" hidden>
+  <div class="modal-box">
+    <div class="modal-box__head">
+      <h3 id="makananModalTitle">Tambah Makanan</h3>
+      <button class="modal-close" id="btnCloseMakananModal">&times;</button>
+    </div>
+    <form id="makananForm">
+      <input type="hidden" id="makananId">
+      <div class="field-row">
+        <div class="field field--half">
+          <label class="field__label-row"><span>Nama Makanan</span></label>
+          <input type="text" id="makananNama" class="text-input" required>
+        </div>
+        <div class="field field--half">
+          <label class="field__label-row"><span>Kategori</span></label>
+          <select id="makananKategori" class="select-input" required>
+            <option value="pokok">Pokok</option>
+            <option value="lauk">Lauk</option>
+            <option value="sayur">Sayur</option>
+            <option value="buah">Buah</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field field--half">
+          <label class="field__label-row"><span>Berat (g)</span></label>
+          <input type="number" step="0.01" id="makananBerat" class="text-input" required>
+        </div>
+        <div class="field field--half">
+          <label class="field__label-row"><span>Energi (kkal)</span></label>
+          <input type="number" step="0.01" id="makananEnergi" class="text-input" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field field--half">
+          <label class="field__label-row"><span>Protein (g)</span></label>
+          <input type="number" step="0.01" id="makananProtein" class="text-input" required>
+        </div>
+        <div class="field field--half">
+          <label class="field__label-row"><span>Lemak (g)</span></label>
+          <input type="number" step="0.01" id="makananLemak" class="text-input" required>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label-row"><span>Karbohidrat (g)</span></label>
+        <input type="number" step="0.01" id="makananKarbo" class="text-input" required>
+      </div>
+      <div id="makananFormError" class="form-error" hidden></div>
+      <div class="modal-box__actions">
+        <button type="button" class="btn-secondary" id="btnCancelMakananModal">Batal</button>
+        <button type="submit" class="btn-run btn-run--sm">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= MODAL: IMPORT CSV ================= -->
+<div class="modal-overlay" id="importModalOverlay" hidden>
+  <div class="modal-box">
+    <div class="modal-box__head">
+      <h3>Import Data Makanan (CSV)</h3>
+      <button class="modal-close" id="btnCloseImportModal">&times;</button>
+    </div>
+    <p class="small-note">Header wajib: <code>nama,kategori,berat,energi,protein,lemak,karbo</code>. Baris dengan nama &amp; berat yang sudah ada akan diperbarui (upsert), bukan jadi duplikat baru.</p>
+    <form id="importForm">
+      <input type="file" id="importFile" accept=".csv" class="text-input" required>
+      <div id="importResult" class="form-note" hidden></div>
+      <div class="modal-box__actions">
+        <button type="button" class="btn-secondary" id="btnCancelImportModal">Tutup</button>
+        <button type="submit" class="btn-run btn-run--sm">Import</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= MODAL: FORM MENU TETAP ================= -->
+<div class="modal-overlay" id="menuTetapModalOverlay" hidden>
+  <div class="modal-box">
+    <div class="modal-box__head">
+      <h3 id="menuTetapModalTitle">Tambah Menu Tetap</h3>
+      <button class="modal-close" id="btnCloseMenuTetapModal">&times;</button>
+    </div>
+    <form id="menuTetapForm">
+      <input type="hidden" id="menuTetapId">
+      <div class="field">
+        <label class="field__label-row"><span>Nama</span></label>
+        <input type="text" id="menuTetapNama" class="text-input" placeholder="mis. Susu UHT" required>
+      </div>
+      <div class="field-row">
+        <div class="field field--half">
+          <label class="field__label-row"><span>Berat (g)</span></label>
+          <input type="number" step="0.01" id="menuTetapBerat" class="text-input">
+        </div>
+        <div class="field field--half">
+          <label class="field__label-row"><span>Energi (kkal)</span></label>
+          <input type="number" step="0.01" id="menuTetapEnergi" class="text-input" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field field--half">
+          <label class="field__label-row"><span>Protein (g)</span></label>
+          <input type="number" step="0.01" id="menuTetapProtein" class="text-input" required>
+        </div>
+        <div class="field field--half">
+          <label class="field__label-row"><span>Lemak (g)</span></label>
+          <input type="number" step="0.01" id="menuTetapLemak" class="text-input" required>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label-row"><span>Karbohidrat (g)</span></label>
+        <input type="number" step="0.01" id="menuTetapKarbo" class="text-input" required>
+      </div>
+      <div id="menuTetapFormError" class="form-error" hidden></div>
+      <div class="modal-box__actions">
+        <button type="button" class="btn-secondary" id="btnCancelMenuTetapModal">Batal</button>
+        <button type="submit" class="btn-run btn-run--sm">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= MODAL: IMPORT CSV MENU TETAP ================= -->
+<div class="modal-overlay" id="importMenuTetapModalOverlay" hidden>
+  <div class="modal-box">
+    <div class="modal-box__head">
+      <h3>Import Data Menu Tetap (CSV)</h3>
+      <button class="modal-close" id="btnCloseImportMenuTetapModal">&times;</button>
+    </div>
+    <p class="small-note">Header wajib: <code>nama,berat,energi,protein,lemak,karbo</code>.</p>
+    <form id="importMenuTetapForm">
+      <input type="file" id="importMenuTetapFile" accept=".csv" class="text-input" required>
+      <div id="importMenuTetapResult" class="form-note" hidden></div>
+      <div class="modal-box__actions">
+        <button type="button" class="btn-secondary" id="btnCancelImportMenuTetapModal">Tutup</button>
+        <button type="submit" class="btn-run btn-run--sm">Import</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>Disusun untuk mendukung penelitian skripsi &middot; Program Makan Bergizi Gratis</span>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
